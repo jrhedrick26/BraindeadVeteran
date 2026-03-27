@@ -8,59 +8,63 @@ st.set_page_config(
     layout="centered"
 )
 
-# --- ACCESSIBILITY-FIRST TACTICAL CSS ---
-# Improved contrast for Safari Mobile and OLED screens
+# --- NUCLEAR ACCESSIBILITY CSS ---
+# This forces white text on EVERY element inside the chat bubbles to fix the Safari bug
 st.markdown("""
     <style>
-    /* Main background - Darker for better contrast */
+    /* 1. Force the main background */
     .stApp { 
-        background-color: #0a0c08; 
-        color: #FFFFFF; 
-        font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+        background-color: #0d0f0a !important; 
     }
-    
-    /* Headers - Bright 'Night Vision' Green */
+
+    /* 2. Target ALL text elements globally and force them to White */
+    .stApp, .stMarkdown, p, span, div, li, label {
+        color: #FFFFFF !important;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+    }
+
+    /* 3. Style Headers specifically */
     h1, h2, h3 { 
         color: #a3cf62 !important; 
-        text-transform: uppercase; 
-        letter-spacing: 1.5px; 
-    }
-
-    /* Description text - Ensuring high visibility on Safari */
-    .mission-text {
-        background-color: #1a1d14;
-        padding: 15px;
-        border-left: 4px solid #a3cf62;
-        margin-bottom: 20px;
-        color: #FFFFFF !important;
-        line-height: 1.6;
-    }
-
-    /* Chat Messages - High contrast white text */
-    .stChatMessage { 
-        background-color: #1a1d14 !important; 
-        border: 1px solid #333 !important;
-        color: #FFFFFF !important;
-    }
-    
-    /* Chat Input - Fixed for mobile visibility */
-    .stChatInputContainer input {
-        color: #FFFFFF !important;
-    }
-
-    /* Sidebar Styling */
-    [data-testid="stSidebar"] { 
-        background-color: #050505 !important; 
-        border-right: 1px solid #a3cf62; 
-    }
-    
-    /* Buttons */
-    .stButton>button { 
-        background-color: #a3cf62 !important; 
-        color: #000000 !important; 
-        font-weight: bold; 
         text-transform: uppercase;
+        font-weight: 800 !important;
+    }
+
+    /* 4. Fix Chat Message Bubbles */
+    [data-testid="stChatMessage"] {
+        background-color: #1a1d14 !important;
+        border: 1px solid #333 !important;
+        border-radius: 8px !important;
+        margin-bottom: 15px !important;
+    }
+
+    /* 5. Force the Chat Input Text to be visible */
+    [data-testid="stChatInput"] textarea {
+        color: #FFFFFF !important;
+        background-color: #262a1e !important;
+    }
+
+    /* 6. Mission Briefing Box */
+    .mission-box {
+        background-color: #1a1d14;
+        padding: 20px;
+        border-left: 5px solid #a3cf62;
+        margin-bottom: 25px;
         border-radius: 4px;
+    }
+
+    /* 7. Sidebar contrast */
+    [data-testid="stSidebar"] {
+        background-color: #050505 !important;
+        border-right: 1px solid #a3cf62;
+    }
+
+    /* 8. Fix buttons for Safari */
+    .stButton>button {
+        background-color: #a3cf62 !important;
+        color: #000000 !important;
+        font-weight: bold !important;
+        border: none !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -82,77 +86,71 @@ with st.sidebar:
         value="BRAIN DEAD"
     )
     st.divider()
-    st.write("v2.5 // MOBILE OPTIMIZED")
+    st.write("v2.6 // HIGH-CONTRAST MODE")
 
-# --- MODEL SCOUT LOGIC ---
+# --- MODEL SCOUT ---
 @st.cache_resource
 def get_working_model():
     try:
         available_models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-        target_models = ["models/gemini-1.5-flash", "models/gemini-pro", "models/gemini-1.0-pro"]
+        target_models = ["models/gemini-1.5-flash", "models/gemini-pro"]
         for target in target_models:
-            if target in available_models:
-                return target
+            if target in available_models: return target
         return available_models[0] if available_models else None
-    except:
-        return None
+    except: return None
 
 working_model_name = get_working_model()
 
 # --- PERSONA ---
 SYSTEM_PROMPT = f"""You are 'The Brain Dead Veteran,' a military LinkedIn influencer. Intensity: {cringe_level}. 
 Rules: 
-1. Every sentence is its own paragraph. 
-2. Use many military and corporate emojis. 
-3. Turn military stories into profound 'Thought Leadership' LinkedIn posts. 
-4. Translate boring tasks into corporate jargon. 
-5. End with 'Agree?' or 'What is your Why?'."""
+1. Every single sentence is its own paragraph. 
+2. Use MANY military and corporate emojis. 
+3. Turn military stories into cringe-worthy LinkedIn 'Thought Leadership' posts. 
+4. End with 'Agree?' or 'What is your Why?'."""
 
 # --- MAIN UI ---
 st.title("🪖 THE BRAIN DEAD VETERAN")
 
-# NEW: Onboarding / Instructions
-st.markdown(f"""
-    <div class="mission-text">
-        <strong>MISSION OVERVIEW:</strong><br>
-        This tool transforms your mundane military service stories (like cleaning the motorpool or losing your ID card) into 
-        <strong>cringe-worthy LinkedIn "Thought Leadership" posts.</strong><br><br>
-        <strong>SOP:</strong> Type a short story below, and I'll generate the viral "Broetry" for you to copy-paste.
+# Onboarding Box
+st.markdown("""
+    <div class="mission-box">
+        <h3 style="margin-top:0; color:#a3cf62 !important;">MISSION BRIEFING</h3>
+        <p style="color:#FFFFFF !important;">
+            Turn your boring military stories into viral LinkedIn "Broetry." 
+            Type a story below (e.g., "I lost my canteen") and watch the "Thought Leadership" happen.
+        </p>
     </div>
     """, unsafe_allow_html=True)
 
 if not working_model_name:
-    st.error("🚨 SATELLITE UPLINK FAILED. Check API Key or region availability.")
+    st.error("🚨 SATELLITE UPLINK FAILED. Check API Key.")
     st.stop()
 
-# Initialize session state for messages
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display Chat History
+# Display Chat History (Simplified for better rendering)
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
-        st.markdown(f'<span style="color: #FFFFFF;">{msg["content"]}</span>', unsafe_allow_html=True)
+        st.write(msg["content"])
 
 # User Input
 if prompt := st.chat_input("Ex: I forgot my PT belt and got smoked..."):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
-        st.markdown(f'<span style="color: #FFFFFF;">{prompt}</span>', unsafe_allow_html=True)
+        st.write(prompt)
 
     with st.chat_message("assistant"):
         try:
             model = genai.GenerativeModel(model_name=working_model_name, system_instruction=SYSTEM_PROMPT)
             response = model.generate_content(prompt)
-            
             if response.text:
                 msg = response.text
-                st.markdown(f'<span style="color: #FFFFFF;">{msg}</span>', unsafe_allow_html=True)
+                st.write(msg)
                 st.session_state.messages.append({"role": "assistant", "content": msg})
-                
-                # Useful feature: One-click copy helper
-                st.info("⬆️ Copy the text above and paste it into LinkedIn to confuse your civilian peers.")
+                st.success("🫡 POST GENERATED. Copy the text above to LinkedIn.")
             else:
-                st.warning("REDACTED: Google safety filters caught that story. Try a slightly cleaner version.")
+                st.warning("REDACTED: Google safety filters caught that. Try another story.")
         except Exception as e:
             st.error(f"⚠️ COMMS ERROR: {str(e)}")
